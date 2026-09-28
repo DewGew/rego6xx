@@ -3,19 +3,25 @@
     "step": {
       "user": {
         "title": "Anslut till Rego 6XX",
-        "data": { "host": "Värd", "port": "Port", "api_key": "API-nyckel" },
+        "data": {
+          "host": "Värd",
+          "port": "Port",
+          "api_key": "API-nyckel"
+        },
         "data_description": {
-          "host": "IP-adress eller värdnamn för Rego 6XX-bryggan.",
-          "api_key": "Lämna tomt om bryggan inte kräver nyckel."
+          "host": "IP-adress eller värdnamn för datorn som kör Rego600 API.",
+          "api_key": "Lämna tomt om REGO_API_KEY inte är satt på servern."
         }
       },
       "reauth_confirm": {
         "title": "Autentisera igen",
-        "data": { "api_key": "API-nyckel" }
+        "data": {
+          "api_key": "API-nyckel"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Kunde inte ansluta (/health eller /info svarade inte).",
+      "cannot_connect": "Kunde inte ansluta (/health eller /api/v1/info svarade inte).",
       "invalid_auth": "Ogiltig API-nyckel.",
       "unknown": "Oväntat fel."
     },
@@ -28,7 +34,9 @@
     "step": {
       "init": {
         "title": "Inställningar",
-        "data": { "scan_interval": "Uppdateringsintervall (sekunder)" }
+        "data": {
+          "scan_interval": "Uppdateringsintervall (sekunder)"
+        }
       }
     }
   }
