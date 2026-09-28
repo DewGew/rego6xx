@@ -47,13 +47,13 @@ class Rego6xxCoordinator(DataUpdateCoordinator[StatusData]):
         self.api = api
         self.info = info
         host, port = entry.data[CONF_HOST], entry.data[CONF_PORT]
+        kw = info.get("pump_size_kw")
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
-            name=str(info.get("name") or f"Rego 6XX {host}"),
-            manufacturer=str(info.get("manufacturer") or "Regin"),
-            model=str(info["model"]) if info.get("model") else None,
-            sw_version=str(info["sw_version"]) if info.get("sw_version") else None,
-            serial_number=str(info["serial"]) if info.get("serial") else None,
+            name=str(info.get("model") or f"Rego 6XX {host}"),
+            manufacturer=str(info.get("manufacturer") or "IVT/Bosch"),
+            model=f"Rego 600, {kw} kW" if kw else "Rego 600",
+            sw_version=str(info["version"]) if info.get("version") else None,
             configuration_url=f"http://{host}:{port}",
         )
 

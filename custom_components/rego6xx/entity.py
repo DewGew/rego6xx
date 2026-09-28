@@ -8,15 +8,26 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .const import POWER_NAMES
 from .coordinator import Rego6xxConfigEntry, Rego6xxCoordinator
 
 # Grupper som delar plattform med en annan grupp får prefix i sluggen
-# så att unique_id inte kolliderar (sensors/power/energy, binary_sensors/leds).
-_PREFIXED = ("power", "energy", "leds")
+# så att unique_id inte kolliderar (sensor: sensors/power/energy/display,
+# binary_sensor: binary_sensors/leds/connection).
+_PREFIXED = ("power", "energy", "display", "leds", "connection", "keys")
 
 
 def make_slug(group: str, key: str) -> str:
     return f"{group}_{key}" if group in _PREFIXED else key
+
+
+def friendly_name(group: str, key: str) -> str:
+    """Namn för poster som saknar eget ``name`` i API-svaret."""
+    if group == "power":
+        return POWER_NAMES.get(key, f"{key.replace('_', ' ').capitalize()} power")
+    if group == "display":
+        return f"Display {key.replace('_', ' ')}"
+    return key.replace("_", " ").capitalize()
 
 
 class Rego6xxEntity(CoordinatorEntity[Rego6xxCoordinator]):
@@ -32,7 +43,7 @@ class Rego6xxEntity(CoordinatorEntity[Rego6xxCoordinator]):
         self._key = key
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{slug}"
         self._attr_device_info = coordinator.device_info
-        self._attr_name = str(self.item.get("name") or key)
+        self._attr_name = str(self.item.get("name") or friendly_name(group, key))
 
     @property
     def item(self) -> dict[str, Any]:
@@ -40,7 +51,15 @@ class Rego6xxEntity(CoordinatorEntity[Rego6xxCoordinator]):
 
     @property
     def available(self) -> bool:
-        return super().available and self._key in self.coordinator.data.get(self._group, {})
+        if not super().available:
+            return False
+        data = self.coordinator.data
+        if self._key not in data.get(self._group, {}):
+            return False
+        if self._group == "connection":
+            return True
+        # Bryggan svarar men har tappat serieporten -> cachade värden är inaktuella
+        return bool(data.get("connection", {}).get("serial", {}).get("value", True))
 
 
 def setup_dynamic(

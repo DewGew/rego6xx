@@ -1,4 +1,4 @@
-"""Sensorer: sensors, power, energy."""
+"""Sensorer: sensors, power, energy och displayrader."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfEnergy, UnitOfPower
+from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfPower, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -21,13 +21,6 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def _device_class(value: Any) -> SensorDeviceClass | None:
-    try:
-        return SensorDeviceClass(value) if value else None
-    except ValueError:
-        return None
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: Rego6xxConfigEntry,
@@ -36,7 +29,12 @@ async def async_setup_entry(
     setup_dynamic(
         entry,
         async_add_entities,
-        {"sensors": Rego6xxSensor, "power": Rego6xxSensor, "energy": Rego6xxSensor},
+        {
+            "sensors": Rego6xxSensor,
+            "power": Rego6xxSensor,
+            "energy": Rego6xxSensor,
+            "display": Rego6xxSensor,
+        },
     )
 
 
@@ -55,9 +53,14 @@ class Rego6xxSensor(Rego6xxEntity, SensorEntity):
             self._attr_device_class = SensorDeviceClass.ENERGY
             self._attr_native_unit_of_measurement = unit or UnitOfEnergy.KILO_WATT_HOUR
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        elif group == "display":
+            # Textrader från pumpens display, av som standard
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            self._attr_entity_registry_enabled_default = False
         else:
-            self._attr_device_class = _device_class(item.get("device_class"))
             self._attr_native_unit_of_measurement = unit
+            if unit == UnitOfTemperature.CELSIUS:
+                self._attr_device_class = SensorDeviceClass.TEMPERATURE
             if _is_number(item.get("value")):
                 self._attr_state_class = SensorStateClass.MEASUREMENT
 
