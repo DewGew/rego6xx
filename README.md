@@ -1,59 +1,36 @@
 # Rego 6XX
 
-Home Assistant integration (HACS) for Rego 6XX via an HTTP bridge.
+Home Assistant-integration (HACS) för IVT/Bosch-värmepumpar med Rego 600-styrning.
+Den pratar med **Rego600 REST API**-appen (FastAPI) som läser pumpen över serieporten.
 
 ## Installation
 
-HACS → ⋮ → *Custom repositories* → `https://github.com/DewGew/rego6xx`, category **Integration** →
-install → restart Home Assistant → *Settings → Devices & services → Add integration → Rego 6XX*.
+HACS → ⋮ → *Custom repositories* → `https://github.com/DewGew/rego6xx`, kategori **Integration** →
+installera → starta om Home Assistant → *Inställningar → Enheter & tjänster → Lägg till integration → Rego 6XX*.
 
-You enter the **host**, **port**, and **API key**. The connection is validated using `GET /health` and `GET /info`.
-The `/status` polling interval (default 30 s, 15–300 s) can be changed under the integration's *Configure* options.
+Ange **host**, **port** (standard 8600) och **API-nyckel** (samma som `REGO_API_KEY`, lämna tomt om den inte används).
+Anslutningen valideras med `GET /health` och `GET /api/v1/info`.
+Pollintervallet för `/api/v1/status` (standard 30 s, 15–300 s) ändras under *Konfigurera*.
 
-## Expected API
+## Entiteter
 
-The API key is sent in the `X-API-Key` header (change this in `api.py`).
+| Källa i `/api/v1/status` | Plattform | Detaljer |
+|---|---|---|
+| `sensors` | sensor | °C → `temperature`, `%` för tillsatsvärme; `state_class: measurement` |
+| `power` | sensor | `power` (W), `measurement`. Ett värde per komponent + total |
+| `energy_total_kwh` | sensor | *Total energy*, `energy` (kWh), **`total_increasing`** |
+| `display` | sensor | Displayrader, diagnostik, **avstängda som standard** |
+| `binary_sensors` | binary_sensor | `alarm` → problem, kompressor/pumpar → running |
+| `leds` | binary_sensor | Diagnostik |
+| `connected` | binary_sensor | *Serial connection* (connectivity). Övriga entiteter blir otillgängliga när den är av |
+| `settings` | number | `min`/`max`/`step` från svaret, skrivs via `POST /api/v1/settings/{key}` |
+| fasta | button | `1`, `2`, `3`, `wheel_left`, `wheel_right` via `POST /api/v1/keys/{key}` |
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET  | `/health` | Returns 200 if the bridge is alive |
-| GET  | `/info` | Device information → `DeviceInfo` |
-| GET  | `/status` | All data, polled every 15–30 s |
-| POST | `/settings/{key}` | Body `{"value": 42}` |
-| POST | `/keys/{key}` | Presses a button |
+- `unique_id` = `{entry_id}_{slug}`. Sluggen är nyckeln i svaret, med prefix (`power_`, `energy_`, `display_`,
+  `leds_`, `connection_`, `keys_`) för grupper som delar plattform.
+- Alla entiteter delar en `DeviceInfo` byggd från `/api/v1/info` (modell, tillverkare, pumpstorlek, API-version).
+- Efter varje POST körs `coordinator.async_request_refresh()`.
+- Nya poster i `/status` blir nya entiteter utan omstart.
 
-`/info`:
-```json
-{"name": "Rego 6XX", "manufacturer": "Regin", "model": "Rego 637", "sw_version": "1.2.3", "serial": "ABC123"}
-```
-
-`/status` (each group can be either a dict or a list; scalar values are accepted as `value`):
-```json
-{
-  "sensors":        {"gt1": {"name": "Radiator return", "value": 35.2, "unit": "°C", "device_class": "temperature"}},
-  "power":          {"compressor": {"name": "Compressor power", "value": 1200}},
-  "energy":         {"total": {"name": "Energy", "value": 1234.5}},
-  "binary_sensors": {"compressor": {"name": "Compressor", "value": true}},
-  "leds":           {"alarm": {"name": "Alarm LED", "value": false}},
-  "settings":       {"heat_curve": {"name": "Heat curve", "value": 30, "min": 0, "max": 100, "step": 1, "unit": "°C"}},
-  "keys":           {"up": {"name": "Up"}, "ok": {"name": "OK"}}
-}
-```
-
-## Entities
-
-| Group | Platform | Details |
-|-------|----------|---------|
-| `sensors` | sensor | `state_class: measurement` if the value is numeric |
-| `power` | sensor | `device_class: power`, `measurement`, default unit W |
-| `energy` | sensor | `device_class: energy`, **`total_increasing`**, default unit kWh |
-| `binary_sensors` | binary_sensor | |
-| `leds` | binary_sensor | category *diagnostic* |
-| `settings` | number | `min`/`max`/`step` are included in the response; writes via POST |
-| `keys` | button | POST on press |
-
-- `unique_id` = `{entry_id}_{slug}`. The slug is the key in the response, but `power_`, `energy_`, and `leds_` are prefixed
-  to avoid collisions with other groups on the same platform.
-- All entities share a `DeviceInfo` built from `/info`.
-- After every POST, `coordinator.async_request_refresh()` is called.
-- New keys in `/status` become new entities without requiring a restart.
+> **Obs:** `power` och `energy_total_kwh` är *uppskattningar* i API-appen (på/av × nominell effekt per
+> pumpstorlek), inte mätvärden.
