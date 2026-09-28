@@ -1,0 +1,9 @@
+"""Konstanter för Rego 6XX."""
+
+DOMAIN = "rego6xx"
+
+CONF_SCAN_INTERVAL = "scan_interval"
+DEFAULT_PORT = 80
+DEFAULT_SCAN_INTERVAL = 30  # sekunder
+MIN_SCAN_INTERVAL = 15
+MAX_SCAN_INTERVAL = 300

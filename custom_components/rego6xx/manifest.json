@@ -1,0 +1,12 @@
+{
+  "domain": "rego6xx",
+  "name": "Rego 6XX",
+  "codeowners": ["@DewGew"],
+  "config_flow": true,
+  "documentation": "https://github.com/DewGew/rego6xx",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/DewGew/rego6xx/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
