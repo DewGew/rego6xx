@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Rego 6XX",
+        "data": { "host": "Host", "port": "Port", "api_key": "API key" },
+        "data_description": {
+          "host": "IP address or hostname of the Rego 6XX bridge.",
+          "api_key": "Leave empty if the bridge does not require a key."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "data": { "api_key": "API key" }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect (/health or /info did not respond).",
+      "invalid_auth": "Invalid API key.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "Device is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": { "scan_interval": "Update interval (seconds)" }
+      }
+    }
+  }
+}
