@@ -8,11 +8,11 @@ and is located in the [`server/`-mapp](server/) directory, which contains the Do
 
 ## Installation
 
-HACS → ⋮ → *Custom repositories* → `https://github.com/DewGew/rego6xx`, category **Integration** or click the button below
+HACS → ⋮ → *Custom repositories* → `https://github.com/DewGew/rego6xx`, category **Integration** or use the button below
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=DewGew&repository=rego6xx&category=integration)
 
-install → restart Home Assistant → *Settings → Devices & services → Add integration → Rego 6XX*.
+Install (Download) → restart Home Assistant → *Settings → Devices & services → Add integration → Rego 6XX*.
 
 Enter the **host**, **port** (default 8600), and **API key** (the same as `REGO_API_KEY`; leave blank if it is not used).  
 The connection is validated using `GET /health` and `GET /api/v1/info`.
