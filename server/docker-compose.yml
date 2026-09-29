@@ -1,0 +1,23 @@
+services:
+  rego600:
+    build: .
+    container_name: rego600
+    restart: unless-stopped
+    ports:
+      - "8600:8600"
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"   # ta bort/ändra om REGO_DUMMY=1
+    volumes:
+      - ./data:/data
+    environment:
+      REGO_SERIAL_PORT: /dev/ttyUSB0
+      REGO_BAUDRATE: "19200"
+      REGO_PUMP_SIZE_KW: "5"
+      REGO_MODEL: "IVT Greenline E5"
+      REGO_API_KEY: ""
+      REGO_ENERGY_FILE: /data/energy_total.json
+      REGO_POLL_INTERVAL: "15"
+      REGO_SETTINGS_INTERVAL: "60"
+      REGO_DISPLAY_INTERVAL: "2"
+      REGO_LOG_LEVEL: INFO
+      REGO_DUMMY: "0"
