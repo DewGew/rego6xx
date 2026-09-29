@@ -1,36 +1,37 @@
 # Rego 6XX
 
-Home Assistant-integration (HACS) för IVT/Bosch-värmepumpar med Rego 600-styrning.
-Den pratar med **Rego600 REST API**-appen (FastAPI) som läser pumpen över serieporten.
+Home Assistant integration (HACS) for IVT/Bosch heat pumps with Rego 600 control systems.  
+It communicates with the **Rego600 REST API** app (FastAPI), which reads the heat pump via the serial port.
 
 ## Installation
 
-HACS → ⋮ → *Custom repositories* → `https://github.com/DewGew/rego6xx`, kategori **Integration** →
-installera → starta om Home Assistant → *Inställningar → Enheter & tjänster → Lägg till integration → Rego 6XX*.
+HACS → ⋮ → *Custom repositories* → `https://github.com/DewGew/rego6xx`, category **Integration** →  
+install → restart Home Assistant → *Settings → Devices & services → Add integration → Rego 6XX*.
 
-Ange **host**, **port** (standard 8600) och **API-nyckel** (samma som `REGO_API_KEY`, lämna tomt om den inte används).
-Anslutningen valideras med `GET /health` och `GET /api/v1/info`.
-Pollintervallet för `/api/v1/status` (standard 30 s, 15–300 s) ändras under *Konfigurera*.
+Enter the **host**, **port** (default 8600), and **API key** (the same as `REGO_API_KEY`; leave blank if it is not used).  
+The connection is validated using `GET /health` and `GET /api/v1/info`.
 
-## Entiteter
+The polling interval for `/api/v1/status` (default 30 s, 15–300 s) can be changed under *Configure*.
 
-| Källa i `/api/v1/status` | Plattform | Detaljer |
+## Entities
+
+| Source in `/api/v1/status` | Platform | Details |
 |---|---|---|
-| `sensors` | sensor | °C → `temperature`, `%` för tillsatsvärme; `state_class: measurement` |
-| `power` | sensor | `power` (W), `measurement`. Ett värde per komponent + total |
+| `sensors` | sensor | °C → `temperature`, `%` for auxiliary heating; `state_class: measurement` |
+| `power` | sensor | `power` (W), `measurement`. One value per component + total |
 | `energy_total_kwh` | sensor | *Total energy*, `energy` (kWh), **`total_increasing`** |
-| `display` | sensor | Displayrader, diagnostik, **avstängda som standard** |
-| `binary_sensors` | binary_sensor | `alarm` → problem, kompressor/pumpar → running |
-| `leds` | binary_sensor | Diagnostik |
-| `connected` | binary_sensor | *Serial connection* (connectivity). Övriga entiteter blir otillgängliga när den är av |
-| `settings` | number | `min`/`max`/`step` från svaret, skrivs via `POST /api/v1/settings/{key}` |
-| fasta | button | `1`, `2`, `3`, `wheel_left`, `wheel_right` via `POST /api/v1/keys/{key}` |
+| `display` | sensor | Display lines, diagnostics, **disabled by default** |
+| `binary_sensors` | binary_sensor | `alarm` → problem, compressor/pumps → running |
+| `leds` | binary_sensor | Diagnostics |
+| `connected` | binary_sensor | *Serial connection* (connectivity). Other entities become unavailable when it is off |
+| `settings` | number | `min`/`max`/`step` from the response, written via `POST /api/v1/settings/{key}` |
+| fixed | button | `1`, `2`, `3`, `wheel_left`, `wheel_right` via `POST /api/v1/keys/{key}` |
 
-- `unique_id` = `{entry_id}_{slug}`. Sluggen är nyckeln i svaret, med prefix (`power_`, `energy_`, `display_`,
-  `leds_`, `connection_`, `keys_`) för grupper som delar plattform.
-- Alla entiteter delar en `DeviceInfo` byggd från `/api/v1/info` (modell, tillverkare, pumpstorlek, API-version).
-- Efter varje POST körs `coordinator.async_request_refresh()`.
-- Nya poster i `/status` blir nya entiteter utan omstart.
+- `unique_id` = `{entry_id}_{slug}`. The slug is the key in the response, with a prefix (`power_`, `energy_`, `display_`,
+  `leds_`, `connection_`, `keys_`) for groups that share a platform.
+- All entities share a `DeviceInfo` built from `/api/v1/info` (model, manufacturer, heat pump size, API version).
+- After every POST, `coordinator.async_request_refresh()` is called.
+- New entries in `/status` become new entities without requiring a restart.
 
-> **Obs:** `power` och `energy_total_kwh` är *uppskattningar* i API-appen (på/av × nominell effekt per
-> pumpstorlek), inte mätvärden.
+> **Note:** `power` and `energy_total_kwh` are *estimates* in the API app (on/off × nominal power per
+> heat pump size), not measured values.
