@@ -1,5 +1,6 @@
 # Rego 6XX
 
+<img src="custom_components/rego6xx/brand/icon.png" alt="Rego6xx" width="100">
 Home Assistant integration (HACS) for IVT/Bosch heat pumps with Rego 600 control systems.  
 It communicates with the **Rego600 REST API** app (FastAPI), which reads the heat pump via the serial port
 and is located in the server/ directory, which contains the Dockerfile and docker-compose.yml.
